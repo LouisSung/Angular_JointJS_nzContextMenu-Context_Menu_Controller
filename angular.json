@@ -29,7 +29,8 @@
             ],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/jointjs/dist/joint.min.css"
             ],
             "scripts": []
           },
@@ -94,7 +95,8 @@
             ],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/jointjs/dist/joint.min.css"
             ],
             "scripts": []
           }
