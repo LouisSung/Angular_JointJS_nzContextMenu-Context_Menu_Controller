@@ -1,18 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd';
 import * as joint from 'jointjs';
+
+import { cellContextMenu } from './setContextMenu';
 
 @Component({
   selector: 'app-joint-contextmenu',
   templateUrl: './joint-contextmenu.component.html',
   styleUrls: ['./joint-contextmenu.component.scss']
 })
-export class JointContextmenuComponent implements OnInit {
-  constructor() { }
+export class JointContextmenuComponent implements OnInit, AfterViewInit {
+  public contextMenu = cellContextMenu;
+  private paper: joint.dia.Paper;
+  @ViewChild('contextMenuComponent') contextMenuComponent: NzDropdownMenuComponent;
+  constructor(private nzContextMenuService: NzContextMenuService) { }
+
   ngOnInit() {
     // ref: https://resources.jointjs.com/tutorial/hello-world
     // remember to add JointJS CSS in `angular.json#L33,99` (for `drawGrid` and others)
     const graph = new joint.dia.Graph();
-    const paper = new joint.dia.Paper({
+    this.paper = new joint.dia.Paper({
       el: document.getElementById('jointjs-holder'),
       model: graph,
       width: window.innerWidth,
@@ -37,7 +44,12 @@ export class JointContextmenuComponent implements OnInit {
     const link = new joint.shapes.standard.Link({source: rectHello, target: rectWorld});
     link.addTo(graph);
 
-    paper.scale(1.5, 1.5);
-    paper.translate(200, 200);
+    this.paper.scale(1.5, 1.5);
+    this.paper.translate(200, 200);
+  }
+
+  ngAfterViewInit(): void {
+    // bind component in ngAfterViewInit; otherwise, it'll be undefined
+    this.contextMenu.bind({ paper: this.paper, service: this.nzContextMenuService, component: this.contextMenuComponent });
   }
 }
