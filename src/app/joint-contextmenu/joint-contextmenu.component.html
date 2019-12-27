@@ -1,16 +1,16 @@
 <div id="jointjs-holder"></div>
 <nz-dropdown-menu #contextMenuComponent="nzDropdownMenu">
-  <ul nz-menu oncontextmenu="return false;">
+  <ul nz-menu class="unselectable" oncontextmenu="return false;">
     <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: contextMenu.menu }"></ng-container>
     <ng-template #recursiveContextMenu let-items>
       <ng-container *ngFor="let item of items">
-        <li *ngIf="item.children?.length > 0; else leaf" nz-submenu [nzTitle]="item.id">
-          <ul oncontextmenu="return false;">
+        <li *ngIf="item.children?.length > 0; else leaf" nz-submenu [nzTitle]="item.title || item.id" [nzDisabled]="item.disabled">
+          <ul class="unselectable" oncontextmenu="return false;">
             <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: item.children }"></ng-container>
           </ul>
         </li>
         <ng-template #leaf>
-          <li nz-menu-item (click)="contextMenu.onClick(item.id)">{{ item.id }}</li>
+          <li nz-menu-item (click)="contextMenu.onClick(item.id)" [nzDisabled]="item.disabled">{{ item.title || item.id }}</li>
         </ng-template>
       </ng-container>
     </ng-template>

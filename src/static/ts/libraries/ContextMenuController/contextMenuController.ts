@@ -1,7 +1,7 @@
 /**
  * @file [Library] Controller to generate context menu for JointJS paper
  * @author Louis Sung <ls@sysmaker.org> All Rights Reserved
- * @version v0.2.1
+ * @version v0.3.0
  * @licence MIT
  */
 
@@ -31,6 +31,31 @@ export class ContextMenuController {
       action(this.current.eventInfo);    // pass current "event info" to menu option callback function
     } else {
       console.error(`ERR: Event for OPTION-"${id}" is undefined`);
+    }
+  }
+
+  /**
+   * To enable, disable, or toggle menu item for context menu (usually used in callback events, e.g., disable after click once)
+   * @param menuType - Target context menu (MenuType.[cell, element, link, or blank])
+   * @param targetId - ID of target menu item
+   * @param setAsDisabled - Set as "true" to disable, "false" to enable, and "leave empty" to toggle (foo = !foo)
+   * @return Return "true" if target menu item is found, "false" if not found (e.g., error ID is given)
+   */
+  public disableMenuItem(menuType: MenuType, targetId: string, setAsDisabled?: boolean): boolean {
+    return(recursivelyFind(this.binding.menu[menuType]));
+
+    function recursivelyFind(items: Array<MenuItem>): boolean {
+      let isFound = false;
+      for (const item of items) {
+        if (item.id === targetId) {
+          item.disabled = (setAsDisabled === undefined) ? !item.disabled : setAsDisabled;
+          isFound = true;
+        } else if (item.children !== undefined && item.children.length > 0) {
+          isFound = recursivelyFind(item.children);
+        }
+        if (isFound === true) { break; }
+      }
+      return isFound;
     }
   }
 
@@ -144,7 +169,9 @@ export class ContextMenuController {
 // ===== Type Definitions =====
 interface MenuItem {
   id: string;
+  disabled?: boolean;
   children?: Array<MenuItem>;
+  title?: string;
 }
 export type ContextMenu = Array<MenuItem>;
 
