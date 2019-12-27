@@ -1,4 +1,6 @@
-import { ClickEvents, ContextMenu, ContextMenuController } from '../../static/ts/libraries/ContextMenuController/contextMenuController';
+import {
+  ClickEvents, ContextMenu, ContextMenuController, MenuType
+} from '../../static/ts/libraries/ContextMenuController/contextMenuController';
 
 const menuItems: ContextMenu = [
   { id: '1.1-childless' },
@@ -21,4 +23,5 @@ const clickEvents: ClickEvents = {
   '1.1-childless': () => console.log('a')
 };
 
-export const cellContextMenu = new ContextMenuController(menuItems, clickEvents);
+export const contextMenu = new ContextMenuController();
+contextMenu.bindContextMenuWithEvents(MenuType.cell, menuItems, clickEvents);

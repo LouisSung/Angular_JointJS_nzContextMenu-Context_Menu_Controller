@@ -1,11 +1,11 @@
 <div id="jointjs-holder"></div>
 <nz-dropdown-menu #contextMenuComponent="nzDropdownMenu">
-  <ul nz-menu>
+  <ul nz-menu oncontextmenu="return false;">
     <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: contextMenu.menu }"></ng-container>
     <ng-template #recursiveContextMenu let-items>
       <ng-container *ngFor="let item of items">
         <li *ngIf="item.children?.length > 0; else leaf" nz-submenu [nzTitle]="item.id">
-          <ul>
+          <ul oncontextmenu="return false;">
             <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: item.children }"></ng-container>
           </ul>
         </li>

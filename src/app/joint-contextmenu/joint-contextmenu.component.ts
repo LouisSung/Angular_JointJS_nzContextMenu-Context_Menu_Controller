@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd';
 import * as joint from 'jointjs';
 
-import { cellContextMenu } from './setContextMenu';
+import { contextMenu } from './setContextMenu';
 
 @Component({
   selector: 'app-joint-contextmenu',
@@ -10,7 +10,7 @@ import { cellContextMenu } from './setContextMenu';
   styleUrls: ['./joint-contextmenu.component.scss']
 })
 export class JointContextmenuComponent implements OnInit, AfterViewInit {
-  public contextMenu = cellContextMenu;
+  public contextMenu = contextMenu;
   private paper: joint.dia.Paper;
   @ViewChild('contextMenuComponent') contextMenuComponent: NzDropdownMenuComponent;
   constructor(private nzContextMenuService: NzContextMenuService) { }
@@ -49,7 +49,7 @@ export class JointContextmenuComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // bind component in ngAfterViewInit; otherwise, it'll be undefined
+    // bind component in "ngAfterViewInit()"; otherwise, contextMenuComponent will be undefined
     this.contextMenu.bind({ paper: this.paper, service: this.nzContextMenuService, component: this.contextMenuComponent });
   }
 }
