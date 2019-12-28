@@ -1,0 +1,3 @@
+// to bypass ViewEncapsulation in Angular (CSS in *.component.scss won't affect injected HTMLElement)
+// see: https://stackoverflow.com/a/46406274 and https://angular.io/api/core/ViewEncapsulation
+@import 'joint-contextmenu.pollution';

@@ -23,25 +23,30 @@ const cell: MenuAndEvents = {
         {id: '2.3-cell5'},
       ]},
     {id: '1.3-cell6', title: '1.3-cell6-show title instead of id'},
-    {id: '1.4-cell7-disabled-option', disabled: true},
-    {id: '1.5-cell-disabled-submenu', disabled: true, children: [{id: '2.4-cell8-unreachable'}]},
-    {id: '1.6-cell-disabled-after-click'},
-    {id: '1.7-cell-toggle-disabled', title: '1.7-cell-toggle disabled status for "1.6-cell"'}
+    {id: '1.4-cell7-disabled-item', disabled: true},
+    {id: '1.5-cell8-disabled-submenu', disabled: true, children: [{id: '2.4-cell8-unreachable'}]},
+    {id: '1.6-cell9-disabled-after-click'},
+    {id: '1.7-cell10-toggle-disabled', title: '1.7-cell-toggle disabled status for "1.6-cell"'},
+    {id: '1.8-cell11-inner-html', title: '1.8-cell11-inner-html-<span class="_red">example</span>'}
   ],
   events: {
-    // Remind when init - WARN: Event for OPTION-"1.1-cell" in MENU-"cell" should be defined
-    // Warn after right click - ERR: Event for OPTION-"1.1-cell" is undefined
+    // Remind when init - WARN: Event for ITEM-"1.1-cell" in MENU-"cell" should be defined
+    // Warn after right click - ERR: Event for ITEM-"1.1-cell" is undefined
     // '1.1-cell1': () => console.log('cell1'),    // comment out to show warning and error
     '2.1-cell2': () => console.log('cell2'),    // eventInfo is not required (doesn't pass)
     '3.1-cell3': (eventInfo) => console.log('cell3 - X: ', eventInfo.x),
     '3.2-cell4': (eventInfo) => console.log('cell4 - Y: ', eventInfo.y),
-    '2.3-cell5': (eventInfo) => console.log('cell5 - Event: ', eventInfo.event),
+    '2.3-cell5': (eventInfo) => console.log('cell5 - Event: ', eventInfo.joint),
     '1.3-cell6': (eventInfo) => console.log('cell6 - CellView: ', eventInfo.cellView),
-    '1.4-cell7-disabled-option': () => console.error('Should not be triggerable'),
+    '1.4-cell7-disabled-item': () => console.error('Should not be triggerable'),
     '2.4-cell8-unreachable': () => console.error('I am triggerable but you cannot even see me'),
-    '1.6-cell-disabled-after-click': () => console.log(
+    '1.6-cell9-disabled-after-click': () => console.log(
       contextMenu.disableMenuItem(MenuType.cell, '1.6-cell-disabled-after-click', true)),
-    '1.7-cell-toggle-disabled': () => contextMenu.disableMenuItem(MenuType.cell, '1.6-cell-disabled-after-click')
+    '1.7-cell10-toggle-disabled': () => contextMenu.disableMenuItem(MenuType.cell, '1.6-cell9-disabled-after-click'),
+    '1.8-cell11-inner-html': (eventInfo) => {
+      console.log('cell11 - Change innerHTML to green temporarily: ', eventInfo.menuItem.target);
+      (eventInfo.menuItem.target as HTMLElement).innerHTML = '1.8-cell11-inner-html-<span class="_green">example-temp</span>';
+    }
   }
 };
 

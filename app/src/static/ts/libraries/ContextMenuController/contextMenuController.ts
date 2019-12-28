@@ -1,7 +1,7 @@
 /**
  * @file [Library] Controller to generate context menu for JointJS paper
  * @author Louis Sung <ls@sysmaker.org> All Rights Reserved
- * @version v0.3.0
+ * @version v0.4.0
  * @licence MIT
  */
 
@@ -24,13 +24,15 @@ export class ContextMenuController {
   /**
    * Callback function for `html template` to do the actual action
    * @param id - The target id (title) for lookup table to find out the corresponding event (action)
+   * @param $eventOnMenuItem - Click event for menu item (not the right click event in eventInfo)
    */
-  public onClick(id: string): void {
+  public onClick(id: string, $eventOnMenuItem?: MouseEvent): void {
     const action = this.current.events[id];
     if (action !== undefined) {
-      action(this.current.eventInfo);    // pass current "event info" to menu option callback function
+      this.current.eventInfo.menuItem = $eventOnMenuItem;
+      action(this.current.eventInfo);    // pass current "event info" to menu item callback function
     } else {
-      console.error(`ERR: Event for OPTION-"${id}" is undefined`);
+      console.error(`ERR: Event for ITEM-"${id}" is undefined`);
     }
   }
 
@@ -83,7 +85,7 @@ export class ContextMenuController {
       this.current.menu = this.binding.menu[menuType];    // update context menu in `.html` by menuType
       this.current.events = this.binding.events[menuType];    // update events with corresponding menuType
       this.menuInfo.service.create(event.originalEvent, this.menuInfo.component);    // open context menu
-      this.current.eventInfo = {cellView, event, x, y};    // record event info for callback function
+      this.current.eventInfo = {cellView, joint: event, x, y, menuItem: null};    // record event info for callback function
     };
   }
 
@@ -122,7 +124,7 @@ export class ContextMenuController {
       Object.assign(expectedEvents, this.binding.events[menuType]);    // update expectedEvents with binding events
       for (const [id, event] of Object.entries(expectedEvents)) {
         if (event === undefined) {    // remind user that some of events are not defined yet
-          console.warn(`WARN: Event for OPTION-"${id}" in MENU-"${menuType}" should be defined`);
+          console.warn(`WARN: Event for ITEM-"${id}" in MENU-"${menuType}" should be defined`);
         }
       }
       this.binding.events[menuType] = expectedEvents;
@@ -139,7 +141,7 @@ export class ContextMenuController {
   }
 
   /**
-   * Extract all leaf options (which should have bound event) in the menu in order to do the following checking
+   * Extract all leaf items (which should have bound event) in the menu in order to do the following checking
    * @param contextMenu - The target menu
    * @return Expected event list with `id only` (undefined action)
    */
@@ -178,11 +180,13 @@ export type ContextMenu = Array<MenuItem>;
 /** Event info provided by `joint.dia.Paper.on` callback function when user right click */
 interface EventInfo {
   cellView: joint.dia.CellView;
-  event: JQuery.ContextMenuEvent;
+  joint: JQuery.ContextMenuEvent;
   x: number;
   y: number;
+  menuItem: MouseEvent;
 }
-type CallbackFunc = (eventInfo?: EventInfo) => void;    // user can decide whether to use the event info or not
+/** User can decide whether to use the event info or not */
+type CallbackFunc = (eventInfo?: EventInfo) => void;
 export interface ClickEvents {
   [key: string]: CallbackFunc;
 }
