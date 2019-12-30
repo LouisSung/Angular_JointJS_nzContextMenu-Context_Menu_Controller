@@ -30,8 +30,8 @@ const cell: MenuAndEvents = {
     {id: '1.8-cell11-inner-html', title: '1.8-cell11-inner-html-<span class="_red">example</span>'}
   ],
   events: {
-    // Remind when init - WARN: Event for ITEM-"1.1-cell" in MENU-"cell" should be defined
-    // Warn after right click - ERR: Event for ITEM-"1.1-cell" is undefined
+    // Remind when init - WARN: Event for ITEM-"1.1-cell1" in MENU-"cell" should be defined
+    // Warn after right click - ERR: Event for ITEM-"1.1-cell1" is undefined
     // '1.1-cell1': () => console.log('cell1'),    // comment out to show warning and error
     '2.1-cell2': () => console.log('cell2'),    // eventInfo is not required (doesn't pass)
     '3.1-cell3': (eventInfo) => console.log('cell3 - X: ', eventInfo.x),
@@ -41,7 +41,7 @@ const cell: MenuAndEvents = {
     '1.4-cell7-disabled-item': () => console.error('Should not be triggerable'),
     '2.4-cell8-unreachable': () => console.error('I am triggerable but you cannot even see me'),
     '1.6-cell9-disabled-after-click': () => console.log(
-      contextMenu.disableMenuItem(MenuType.cell, '1.6-cell-disabled-after-click', true)),
+      contextMenu.disableMenuItem(MenuType.cell, '1.6-cell9-disabled-after-click', true)),
     '1.7-cell10-toggle-disabled': () => contextMenu.disableMenuItem(MenuType.cell, '1.6-cell9-disabled-after-click'),
     '1.8-cell11-inner-html': (eventInfo) => {
       console.log('cell11 - Change innerHTML to green temporarily: ', eventInfo.menuItem.target);

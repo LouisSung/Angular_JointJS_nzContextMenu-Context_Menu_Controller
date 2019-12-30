@@ -1,7 +1,7 @@
 /**
  * @file [Library] Controller to generate context menu for JointJS paper
  * @author Louis Sung <ls@sysmaker.org> All Rights Reserved
- * @version v0.4.0
+ * @version v1.0.0
  * @licence MIT
  */
 
