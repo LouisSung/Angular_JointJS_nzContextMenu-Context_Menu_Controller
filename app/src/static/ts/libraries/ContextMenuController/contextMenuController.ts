@@ -1,7 +1,7 @@
 /**
  * @file [Library] Controller to generate context menu for JointJS paper
  * @author Louis Sung <ls@sysmaker.org> All Rights Reserved
- * @version v1.0.0
+ * @version v1.0.1
  * @licence MIT
  */
 
@@ -169,7 +169,7 @@ export class ContextMenuController {
 
 
 // ===== Type Definitions =====
-interface MenuItem {
+export interface MenuItem {
   id: string;
   disabled?: boolean;
   children?: Array<MenuItem>;
@@ -186,13 +186,13 @@ interface EventInfo {
   menuItem: MouseEvent;
 }
 /** User can decide whether to use the event info or not */
-type CallbackFunc = (eventInfo?: EventInfo) => void;
+export type CallbackFunc = (eventInfo?: EventInfo) => void;
 export interface ClickEvents {
   [key: string]: CallbackFunc;
 }
 
 /** Context menu info provided by `*.component.ts` */
-interface ContextMenuInfo {
+export interface ContextMenuInfo {
   paper: joint.dia.Paper;
   service: NzContextMenuService;
   component: NzDropdownMenuComponent;

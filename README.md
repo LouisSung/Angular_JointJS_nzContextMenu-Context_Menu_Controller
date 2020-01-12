@@ -17,34 +17,20 @@
 2. Meet the [prerequisites](#--prerequisite) (import library, predefine context menu, component initialize, bind event, etc.)
 3. Try the [demo](#--demo) ฅ• ω •ฅ
 
-### - Demo
-<img src="docs/img/2-callback_events.png" width="700px"/>
-
-* All demos are shown using [`cell:contextmenu`](app/src/app/joint-contextmenu/setContextMenu.ts#L13-L51)
-  1. `1.1-cell1`: [No](app/src/app/joint-contextmenu/setContextMenu.ts#L33-L35) binding event, which will raise [**warning**](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L127) when init and [**error**](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L35) when click (as screenshot)
-  2. `2.1-cell2`: Console log only
-  3. `3.1-cell3`: [Empty children](app/src/app/joint-contextmenu/setContextMenu.ts#L20) (which requires binding event and won't be render as submenu); EventInfo - X-axis
-  4. `3.2-cell4`: EventInfo - [Y-axis](app/src/app/joint-contextmenu/setContextMenu.ts#L38) (where user did the `right click`)
-  5. `2.3-cell5`: EventInfo - JointJS [jQuery Event](app/src/app/joint-contextmenu/setContextMenu.ts#L39) (the context menu event)
-  6. `1.3-cell6`: Show [title instead of id](app/src/app/joint-contextmenu/setContextMenu.ts#L25); EventInfo - [CellView](app/src/app/joint-contextmenu/setContextMenu.ts#L40) (the cell user right clicked on) (undefined for `blank` event)
-  7. `1.4-cell7-disabled-item`: [Disabled](app/src/app/joint-contextmenu/setContextMenu.ts#L26) menu item
-  8. `1.5-cell8-disabled-submenu`: Disabled submenu (children in the menu are still enabled but unreachable)
-  9. `1.6-cell9-disabled-after-click`: Always [disable](app/src/app/joint-contextmenu/setContextMenu.ts#L44) itself when click
-      - Return and [print](app/src/app/joint-contextmenu/setContextMenu.ts#L43) `true` if the given id was found and disabled status was set
-  10. `1.7-cell10-toggle-disabled`: Switch cell9 [between](app/src/app/joint-contextmenu/setContextMenu.ts#L45) enabled and disabled
-  11. `1.8-cell11-inner-html`: InnerHtml [rendering](app/src/app/joint-contextmenu/joint-contextmenu.component.html#L14) and [changing](app/src/app/joint-contextmenu/setContextMenu.ts#L48)
-      - `eventInfo.menuItem`=the mouse click event; `(eventInfo.menuItem.target as HTMLElement)`=the menu item
-
+---
 ## HOW-TO
 ### - Run
 1. `$ ./run_app.sh`
+    + `ng add ng-zorro-antd@~8.5.2` for existing project as needed
 2. Visit http://localhost:4200/
+    + Change port by `ng serve --poll=2000 --port=TARGET_PORT` as needed
 
 ### - Prerequisite
 1. Prepare [placeholder](app/src/app/joint-contextmenu/joint-contextmenu.component.html#L2-L19) for context menu in `*.component.html`
-2. [Import](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L1-L5) things in `*.component.ts`
+2. ([Import](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L1-L5) things in `*.component.ts`)
     + Services, components, and predefined context menus
-3. [Declare](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L15-L16) and [bind](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L51-L54) target paper, component, and service in `*.component.ts`
+    + Shoulde be auto complete if using IDE
+3. [Declare](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L13-L15) and [bind](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L52-L55) target paper, component, and service in `*.component.ts`
 4. [Predefine](app/src/app/joint-contextmenu/setContextMenu.ts#L10-L95), [bind](app/src/app/joint-contextmenu/setContextMenu.ts#L101-L104) menus with events, and [export](app/src/app/joint-contextmenu/setContextMenu.ts#L97-L100) context menus in `yourMenus.ts`
 
 ### - Implementation
@@ -56,7 +42,7 @@
     + [`disableMenuItem(menuType: MenuType, targetId: string, setAsDisabled?: boolean): boolean`](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L39-L62): Set menu item status
       - `setAsDisabled`: `true`=disabled, `false`=enabled, `leave empty`=toggle
     + [`bind(contextMenuInfo: ContextMenuInfo): void`](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L64-L90)
-      - [Bind](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L51-L54) target [paper](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L14), [nzContextMenuService](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L16), and Menu Template ([@ViewChild](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L15))
+      - [Bind](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L52-L55) target [paper](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L17), [nzContextMenuService](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L15), and Menu Template ([@ViewChild](app/src/app/joint-contextmenu/joint-contextmenu.component.ts#L14))
     + [`unbind(menuType?: MenuType): void`](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L92-L106): Reserved. Not used in the demo
       - `leave empty`=unbind all 4 kinds of bound events
     + [`bindContextMenuWithEvents(menuType: MenuType, contextMenu?: ContextMenu, clickEvents?: ClickEvents)`](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L108-L132)
@@ -108,8 +94,29 @@
       - However, you will face [`ViewEncapsulation` issue](app/src/static/scss/entry.pollution.scss#L1-L2) in angular
       - Workaround: Declare those `*.pollution` CSS [explicitly](app/src/static/scss/joint-contextmenu.pollution.scss), creat an [entry point](app/src/static/scss/entry.pollution.scss#L3), and import it in [`styles.scss`](master/app/src/styles.scss#L2)
 
+---
+## - Demo
+<img src="docs/img/2-callback_events.png" width="700px"/>
+
+* All demos are shown using [`cell:contextmenu`](app/src/app/joint-contextmenu/setContextMenu.ts#L13-L51)
+  1. `1.1-cell1`: [No](app/src/app/joint-contextmenu/setContextMenu.ts#L33-L35) binding event, which will raise [**warning**](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L127) when init and [**error**](app/src/static/ts/libraries/ContextMenuController/contextMenuController.ts#L35) when click (as screenshot)
+  2. `2.1-cell2`: Console log only
+  3. `3.1-cell3`: [Empty children](app/src/app/joint-contextmenu/setContextMenu.ts#L20) (which requires binding event and won't be render as submenu); EventInfo - X-axis
+  4. `3.2-cell4`: EventInfo - [Y-axis](app/src/app/joint-contextmenu/setContextMenu.ts#L38) (where user did the `right click`)
+  5. `2.3-cell5`: EventInfo - JointJS [jQuery Event](app/src/app/joint-contextmenu/setContextMenu.ts#L39) (the context menu event)
+  6. `1.3-cell6`: Show [title instead of id](app/src/app/joint-contextmenu/setContextMenu.ts#L25); EventInfo - [CellView](app/src/app/joint-contextmenu/setContextMenu.ts#L40) (the cell user right clicked on) (undefined for `blank` event)
+  7. `1.4-cell7-disabled-item`: [Disabled](app/src/app/joint-contextmenu/setContextMenu.ts#L26) menu item
+  8. `1.5-cell8-disabled-submenu`: Disabled submenu (children in the menu are still enabled but unreachable)
+  9. `1.6-cell9-disabled-after-click`: Always [disable](app/src/app/joint-contextmenu/setContextMenu.ts#L44) itself when click
+      - Return and [print](app/src/app/joint-contextmenu/setContextMenu.ts#L43) `true` if the given id was found and disabled status was set
+  10. `1.7-cell10-toggle-disabled`: Switch cell9 [between](app/src/app/joint-contextmenu/setContextMenu.ts#L45) enabled and disabled
+  11. `1.8-cell11-inner-html`: InnerHtml [rendering](app/src/app/joint-contextmenu/joint-contextmenu.component.html#L14) and [changing](app/src/app/joint-contextmenu/setContextMenu.ts#L48)
+      - `eventInfo.menuItem`=the mouse click event; `(eventInfo.menuItem.target as HTMLElement)`=the menu item
+
+---
 ## License
 * This project is licensed under the MIT License
   + Feel free to modify it as your own version if needed
   + Contact me if having any comments :D
+
 

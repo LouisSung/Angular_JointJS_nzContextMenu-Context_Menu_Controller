@@ -11,9 +11,10 @@ import { contextMenu } from './setContextMenu';
 })
 export class JointContextmenuComponent implements OnInit, AfterViewInit {
   public contextMenu = contextMenu;
-  private paper: joint.dia.Paper;
   @ViewChild('contextMenuPlaceholder') contextMenuComponent: NzDropdownMenuComponent;
   constructor(private nzContextMenuService: NzContextMenuService) { }
+
+  private paper: joint.dia.Paper;
 
   ngOnInit() {
     // ref: https://resources.jointjs.com/tutorial/hello-world
