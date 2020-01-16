@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd';
 import * as joint from 'jointjs';
 
-import { contextMenu } from './setContextMenu';
+import { contextMenu } from './JointjsContextMenuController/context-menu-config';
 
 @Component({
   selector: 'app-joint-contextmenu',

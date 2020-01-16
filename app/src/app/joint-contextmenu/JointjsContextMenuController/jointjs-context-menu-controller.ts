@@ -1,7 +1,7 @@
 /**
- * @file [Library] Controller to generate context menu for JointJS paper
+ * @file [Library] Controller to generate NZ context menu for JointJS paper in Angular
  * @author Louis Sung <ls@sysmaker.org> All Rights Reserved
- * @version v1.0.1
+ * @version v1.1.0
  * @licence MIT
  */
 
@@ -9,7 +9,7 @@ import * as joint from 'jointjs';
 import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd';
 
 /** Class that allows user to create context menus and bind corresponding events */
-export class ContextMenuController {
+export class JointjsContextMenuController {
   /**
    * For `html template` to render current menu
    * @return Current context menu (according to the click target (event type))

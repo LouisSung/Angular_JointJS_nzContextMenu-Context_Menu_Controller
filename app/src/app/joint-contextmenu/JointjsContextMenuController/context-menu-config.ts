@@ -1,6 +1,6 @@
 import {
-  ClickEvents, ContextMenu, ContextMenuController, MenuType
-} from '../../static/ts/libraries/ContextMenuController/contextMenuController';
+  ClickEvents, ContextMenu, JointjsContextMenuController, MenuType
+} from './jointjs-context-menu-controller';
 
 interface MenuAndEvents {
   menu: ContextMenu;
@@ -97,7 +97,7 @@ const blank: MenuAndEvents = {
 /**
  * Expose contextMenu to "*.component.ts" with all predefined menus and corresponding events
  */
-export const contextMenu = new ContextMenuController();
+export const contextMenu = new JointjsContextMenuController();
 contextMenu.bindContextMenuWithEvents(MenuType.cell, cell.menu, cell.events);
 contextMenu.bindContextMenuWithEvents(MenuType.element, element.menu, element.events);
 contextMenu.bindContextMenuWithEvents(MenuType.link, link.menu, link.events);
