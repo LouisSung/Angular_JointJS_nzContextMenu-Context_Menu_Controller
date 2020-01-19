@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { JointContextmenuComponent } from './joint-contextmenu.component';
-import { NzDropDownModule } from 'ng-zorro-antd';
+import { NzDropDownModule, NzToolTipModule } from 'ng-zorro-antd';
 
 
 
@@ -10,7 +10,8 @@ import { NzDropDownModule } from 'ng-zorro-antd';
   exports: [JointContextmenuComponent],
   imports: [
     CommonModule,
-    NzDropDownModule
+    NzDropDownModule,
+    NzToolTipModule
   ]
 })
 export class JointContextmenuModule { }

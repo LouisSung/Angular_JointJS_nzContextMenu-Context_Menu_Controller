@@ -1,17 +1,20 @@
 <div id="jointjs-holder"></div>
 <nz-dropdown-menu #contextMenuPlaceholder="nzDropdownMenu">
   <ul nz-menu class="unselectable" oncontextmenu="return false;">
-    <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: contextMenu.menu }"></ng-container>
+    <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: contextMenu.contextMenu }"></ng-container>
     <ng-template #recursiveContextMenu let-menuItems>
       <ng-container *ngFor="let item of menuItems">
-        <li *ngIf="item.children?.length > 0; else leaf" nz-submenu [nzTitle]="item.title || item.id" [nzDisabled]="item.disabled">
+        <li *ngIf="item.children?.length > 0; else leaf" nz-submenu nz-tooltip [ngStyle]="item.style?.menu"
+            [nzTitle]="item.display || item.id" [nzDisabled]="item.disabled" [nzTooltipTitle]="item.title"
+            nzPlacement="bottomLeft" [nzMouseEnterDelay]="1" [nzOverlayStyle]="item.style?.title">
           <ul class="unselectable" oncontextmenu="return false;">
             <ng-container *ngTemplateOutlet="recursiveContextMenu; context:{ $implicit: item.children }"></ng-container>
           </ul>
         </li>
         <ng-template #leaf>
-          <li nz-menu-item (click)="contextMenu.onClick(item.id, $event)"
-              [nzDisabled]="item.disabled" [innerHTML]="item.title || item.id"></li>
+          <li nz-menu-item nz-tooltip [ngStyle]="item.style?.menu" (click)="contextMenu.onClick(item, $event)"
+              [innerHTML]="item.display || item.id" [nzDisabled]="item.disabled" [nzTooltipTitle]="item.title"
+              nzPlacement="bottomLeft" [nzMouseEnterDelay]="1" [nzOverlayStyle]="item.style?.title">
         </ng-template>
       </ng-container>
     </ng-template>

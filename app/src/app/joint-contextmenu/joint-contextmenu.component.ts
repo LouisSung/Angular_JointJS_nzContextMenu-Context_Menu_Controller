@@ -51,6 +51,7 @@ export class JointContextmenuComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     // bind component in "ngAfterViewInit()"; otherwise, contextMenuComponent will be undefined
-    this.contextMenu.bind({ paper: this.paper, service: this.nzContextMenuService, component: this.contextMenuComponent });
+    this.contextMenu.bindAngular(this.nzContextMenuService, this.contextMenuComponent);
+    this.contextMenu.bindPaper(this.paper);
   }
 }

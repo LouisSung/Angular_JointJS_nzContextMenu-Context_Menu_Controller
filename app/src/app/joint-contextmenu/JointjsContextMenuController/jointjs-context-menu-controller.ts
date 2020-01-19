@@ -1,181 +1,204 @@
 /**
  * @file [Library] Controller to generate NZ context menu for JointJS paper in Angular
  * @author Louis Sung <ls@sysmaker.org> All Rights Reserved
- * @version v1.1.0
+ * @version v2.0.0
  * @licence MIT
  */
 
 import * as joint from 'jointjs';
-import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd';
+import { NgStyle } from '@angular/common';
+import { NgStyleInterface, NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd';
 
-/** Class that allows user to create context menus and bind corresponding events */
+/** Class that allows user to create context menus and bind corresponding actions */
 export class JointjsContextMenuController {
   /**
    * For `html template` to render current menu
-   * @return Current context menu (according to the click target (event type))
+   * @return Current context menu (according to the click target (menuType))
    */
-  public get menu(): ContextMenu { return this.current.menu; }
+  public get contextMenu(): ContextMenu { return this.current.contextMenu; }
 
-  /** Private members that help on storing runtime info */
-  private menuInfo: ContextMenuInfo;    // record event binding target (paper)
-  private current: CurrentInfo = {menu: null, events: null, eventInfo: null};    // decided by the MenuType of target
-  private binding: BindingInfo = {menu: {}, events: {}};    // context menu and events list for each MenuType
+  /** Private member that help on storing runtime info */
+  private current: CurrentInfo = {contextMenu: null, eventInfo: null};    // decided by the MenuType of target
+  /** Private member that store bound info */
+  private register: RegisterInfo = {
+    paperSet: new Set<joint.dia.Paper>(),
+    contextMenu: {cell: [], link: [], element: [], blank: []}
+  };
 
   /**
-   * Callback function for `html template` to do the actual action
-   * @param id - The target id (title) for lookup table to find out the corresponding event (action)
-   * @param $eventOnMenuItem - Click event for menu item (not the right click event in eventInfo)
+   * CallbackFunc for `html template` to do the actual action
+   * @param menuItem - The clicked menuItem
+   * @param $eventOnMenuItem - Click event for menu item (the left click event)
    */
-  public onClick(id: string, $eventOnMenuItem?: MouseEvent): void {
-    const action = this.current.events[id];
-    if (action !== undefined) {
-      this.current.eventInfo.menuItem = $eventOnMenuItem;
-      action(this.current.eventInfo);    // pass current "event info" to menu item callback function
-    } else {
-      console.error(`ERR: Event for ITEM-"${id}" is undefined`);
+  public onClick(menuItem: MenuItem, $eventOnMenuItem?: MouseEvent): void {
+    if (menuItem.disabled !== true) {    // make sure menuItem is not disabled
+      const action = menuItem.action;
+      if (action !== undefined) {    // make sure action has been defined
+        this.current.eventInfo.menuItem = $eventOnMenuItem;
+        action(this.current.eventInfo);    // pass current eventInfo to the callbackFunc (action) of menuItem
+      } else {
+        console.error(`ERR: Action for ITEM-"${menuItem.id}" is undefined`);
+      }
     }
   }
 
   /**
-   * To enable, disable, or toggle menu item for context menu (usually used in callback events, e.g., disable after click once)
-   * @param menuType - Target context menu (MenuType.[cell, element, link, or blank])
+   * To enable, disable, or toggle menu item for context menu (usually used in callbackFunc, e.g., disable after click once)
    * @param targetId - ID of target menu item
+   * @param menuType - Target context menu (MenuType.[cell, element, link, or blank])
    * @param setAsDisabled - Set as "true" to disable, "false" to enable, and "leave empty" to toggle (foo = !foo)
    * @return Return "true" if target menu item is found, "false" if not found (e.g., error ID is given)
    */
-  public disableMenuItem(menuType: MenuType, targetId: string, setAsDisabled?: boolean): boolean {
-    return(recursivelyFind(this.binding.menu[menuType]));
+  public disableMenuItem(targetId: string, menuType?: MenuType, setAsDisabled?: boolean): boolean {
+    return this.findMenuItemById(targetId, menuType && this.register.contextMenu[menuType],
+      (menuItem: MenuItem) => { menuItem.disabled = (setAsDisabled === undefined) ? !menuItem.disabled : setAsDisabled; });
+  }
 
-    function recursivelyFind(items: Array<MenuItem>): boolean {
+  /**
+   * To bind context menu config on target paper(s)
+   * @param paper - Either 1 paper or multiple papers in an array (note that one paper can only be bound once before unbind)
+   */
+  public bindPaper(paper: joint.dia.Paper | Array<joint.dia.Paper>): void {
+    if (this.register.init !== undefined) {
+      const filteredPaper = (Array.isArray(paper) ? paper : [paper]).filter(    // prevent same paper from bind multiple times
+        (tmpPaper) => this.register.paperSet.has(tmpPaper) ? false : Boolean(this.register.paperSet.add(tmpPaper)));
+
+      for (const targetPaper of filteredPaper) {
+        for (const menuType of Object.values(MenuType)) {
+          if (this.register.contextMenu[menuType].length > 0) {
+            // targetPaper.off(`${menuType}:contextmenu`);
+            targetPaper.on(`${menuType}:contextmenu`, (menuType === MenuType.blank) ?
+              (event, x, y): void  => { rightClick(MenuType.blank, event, x, y); } :    // "blank" events have no cellView
+              (cellView, event, x, y): void => { rightClick(menuType, event, x, y, cellView); }    // cell, element, or link
+            );
+          }}}
+    } else {
+      console.error('ERR: Function "bindPaper()" should be called after "bindAngular()"');
+    }
+    /** Inner function. Extracted because events for MenuType.blank have no cellView, which are different from other types */
+    const rightClick = (menuType: MenuType, event: JQuery.ContextMenuEvent, x: number, y: number, cellView?: joint.dia.CellView) => {
+      this.current.contextMenu = this.register.contextMenu[menuType];    // update context menu in `.html` by menuType
+      this.current.eventInfo = {cellView, joint: event, x, y, menuItem: null};    // record event info for callback function
+      this.register.init.nzContextMenuService.create(event.originalEvent, this.register.init.nzDropdownMenuComponent);
+    };
+  }
+
+ /**
+  * Reserved function. For user to unbind bound right click events as needed
+  * @param [paper] - Target paper to unbind right click event
+  * @param [menuType] - Leave empty to unbind both 4 types of menuType (cell, element, link, and blank)
+  */
+  public unbindPaper(paper?: joint.dia.Paper | Array<joint.dia.Paper>, menuType?: MenuType): void {
+    if (this.register.init !== undefined) {
+      const targetPaperList = (paper === undefined) ? this.register.paperSet : (Array.isArray(paper) ? paper : [paper]);
+      const targetMenuTypeList = (menuType !== undefined) ? [menuType] : Object.values(MenuType);
+      for (const unbindPaper of targetPaperList) {
+        for (const unbindType of targetMenuTypeList) {
+          unbindPaper.off(`${unbindType}:contextmenu`);
+        }}
+
+      // clear registered papers after unbind
+      if (menuType === undefined) { targetPaperList.forEach(this.register.paperSet.delete, this.register.paperSet); }
+    } else {
+      console.error('ERR: Try to unbind before bound (call "bindAngular()" within ngAfterViewInit in "*.component.ts" first)');
+    }
+  }
+
+  /**
+   * For `Angular Component` to bind all required info. Must be called within `ngAfterViewInit()` in file `*.component.ts`
+   * @param nzContextMenuService - NZ Service that handle (create and close) context menu
+   * @param nzDropdownMenuComponent - NZ Component for drop-down menu (context menu)
+   */
+  public bindAngular(nzContextMenuService: NzContextMenuService, nzDropdownMenuComponent: NzDropdownMenuComponent): void {
+    if (nzDropdownMenuComponent !== undefined) {
+      this.register.init = {nzContextMenuService, nzDropdownMenuComponent};
+    } else {
+      console.error('ERR: Function "init()" should be called within "ngAfterViewInit()" in "*.component.ts"');
+    }
+  }
+
+  /**
+   * To bind `Predefined Context Menu`.
+   * User should predefine context menus with actions in separated `.ts` file, and then import it into `*.component.ts`.
+   * Therefore, Component in Angular is not responsible for content and actions of context menus
+   * @param menuType - Should be either MenuType.[cell, element, link, or blank]
+   * @param contextMenuWithAction - Bind or update context menu (with action for leaf menuItems)
+   */
+  public bindContextMenuAndAction(menuType: MenuType, contextMenuWithAction: ContextMenu): void {
+    this.register.contextMenu[menuType] = contextMenuWithAction;
+
+    if (this.register.contextMenu[menuType].length > 0) {    // check action for each leafMenuItem
+      for (const [id, action] of Object.entries(extractMenuAction(this.register.contextMenu[menuType]))) {
+        if (action === undefined) {    // remind user that some of actions have not been defined yet
+          console.warn(`WARN: Action for ITEM-"${id}" in MENU-"${menuType}" should be defined`);
+        }}}
+
+    // inner function
+    function extractMenuAction(contextMenu: ContextMenu): { [key: string]: MenuLeaf['action']; } {
+      // turn `[{id1, action1}, {id2, action2} ...]` into `{id1: action1, id2: action2 ...}`
+      return recursivelyExtractMenuLeaf(contextMenu).reduce((pre, cur) => ({...pre, [cur.id]: cur.action}), {});
+
+      // nested function
+      function recursivelyExtractMenuLeaf(menuItemList: ContextMenu | Array<MenuItem>): Array<MenuLeaf> {
+        const tmpMenuLeafList: Array<MenuLeaf> = [];
+        for (const menuItem of menuItemList) {
+          if (menuItem.children === undefined || menuItem.children.length === 0) {
+            tmpMenuLeafList.push({id: menuItem.id, action: menuItem.action});
+          } else {
+            recursivelyExtractMenuLeaf(menuItem.children).forEach(
+              (leafMenuItem) => { tmpMenuLeafList.push({id: leafMenuItem.id, action: leafMenuItem.action}); });
+          }
+        }
+        return tmpMenuLeafList;
+      }
+    }
+  }
+
+  /**
+   * To find menu item by the given id
+   * @param targetId: Target id
+   * @param contextMenu: Find in given context menu (leave empty to find in all menu)
+   * @param callbackFunc: Callback function when menu item is found
+   */
+  public findMenuItemById(targetId: string, contextMenu?: ContextMenu, callbackFunc?: (menuItem: MenuItem) => void): boolean {
+    if (contextMenu !== undefined) {
+      return recursivelyFindMenuItem(contextMenu);
+    } else {
+      for (const targetContextMenu of Object.values(this.register.contextMenu).reverse()) {
+        if (recursivelyFindMenuItem(targetContextMenu) === true) { return true; }
+      }
+      return false;
+    }
+
+    // inner function
+    function recursivelyFindMenuItem(menuItemList: ContextMenu | Array<MenuItem>): boolean {
       let isFound = false;
-      for (const item of items) {
+      for (const item of menuItemList) {
         if (item.id === targetId) {
-          item.disabled = (setAsDisabled === undefined) ? !item.disabled : setAsDisabled;
+          if (callbackFunc instanceof Function) { callbackFunc(item); }
           isFound = true;
         } else if (item.children !== undefined && item.children.length > 0) {
-          isFound = recursivelyFind(item.children);
+          isFound = recursivelyFindMenuItem(item.children);
         }
-        if (isFound === true) { break; }
+        if (isFound === true) { return isFound; }
       }
       return isFound;
     }
   }
-
-  /**
-   * For `Component` to bind all required info. Must be called within `ngAfterViewInit()` in file `*.component.ts`
-   * @param contextMenuInfo - Required info, i.e., Target Paper, nzContextMenuService, and Menu Template
-   */
-  public bind(contextMenuInfo: ContextMenuInfo): void {
-    if (contextMenuInfo.component !== undefined) {
-      this.menuInfo = contextMenuInfo;
-      for (const menuType of [MenuType.cell, MenuType.element, MenuType.link, MenuType.blank]) {
-        if (this.binding.menu[menuType].length > 0) {
-          // console.log(`INFO: Bind event "paper.on.${menuType}:contextmenu"`);    // check binding event type
-          this.menuInfo.paper.on(`${menuType}:contextmenu`, (menuType === MenuType.blank) ?
-            (event, x, y): void  => { callbackFunc(MenuType.blank, event, x, y); } :    // "blank" events have no cellView
-            (cellView, event, x, y): void => { callbackFunc(menuType, event, x, y, cellView); }    // cell, element, or link
-          );
-        }
-      }
-    } else {
-      console.error('ERR: Function "bind()" should be called within "ngAfterViewInit()" in "*.component.ts"');
-    }
-    /** Nested function. Extracted because events for MenuType.blank have no cellView, which are different from other types */
-    const callbackFunc = (menuType: MenuType, event: JQuery.ContextMenuEvent, x: number, y: number, cellView?: joint.dia.CellView) => {
-      this.current.menu = this.binding.menu[menuType];    // update context menu in `.html` by menuType
-      this.current.events = this.binding.events[menuType];    // update events with corresponding menuType
-      this.menuInfo.service.create(event.originalEvent, this.menuInfo.component);    // open context menu
-      this.current.eventInfo = {cellView, joint: event, x, y, menuItem: null};    // record event info for callback function
-    };
-  }
-
-  /**
-   * Reserved function. For user to unbind bound events as needed
-   * @param [menuType] - Leave empty to unbind both 4 types of events (cell, element, and link, blank)
-   */
-  public unbind(menuType?: MenuType): void {
-    if (this.menuInfo === undefined) {
-      console.error('ERR: Try to unbind before bound (call "bind()" in "*.component.ts" first)');
-    } else {
-      const unbindTarget = (menuType !== undefined) ? [menuType] : [MenuType.cell, MenuType.element, MenuType.link, MenuType.blank];
-      for (const unbind of unbindTarget) {
-        console.log(`INFO: Unbind event "paper.on.${unbind}:contextmenu"`);
-        this.menuInfo.paper.off(`${unbind}:contextmenu`);
-      }
-    }
-  }
-
-  /**
-   * For `Predefined Context Menu`. User should predefine context menus and events in separated `.ts` file, and then
-   *   import it into `*.component.ts`. Therefore, Component is not responsible for content and events of context menus
-   * @param menuType - Should be either MenuType.[cell, element, link, or blank]
-   * @param contextMenu - Update context menu. Leave empty to keep old menu (e.g., use to update click events only)
-   * @param clickEvents - Update click events. Leave empty to keep old events (e.g., update menu only) (rarely used)
-   */
-  public bindContextMenuWithEvents(menuType: MenuType, contextMenu?: ContextMenu, clickEvents?: ClickEvents) {
-    // update as new values if given, keep old values if not given, and init as empty if there's no old value
-    // pass contextMenu as [] or clickEvents as {} to manually clear up old values
-    this.binding.menu[menuType] = contextMenu || this.binding.menu[menuType] || [];
-    this.binding.events[menuType] = clickEvents || this.binding.events[menuType] || {};
-
-    if (this.binding.menu[menuType].length > 0) {
-      // extract click event list from the recorded context menu
-      const expectedEvents = this.extractIdAndEvent(this.binding.menu[menuType]);
-      Object.assign(expectedEvents, this.binding.events[menuType]);    // update expectedEvents with binding events
-      for (const [id, event] of Object.entries(expectedEvents)) {
-        if (event === undefined) {    // remind user that some of events are not defined yet
-          console.warn(`WARN: Event for ITEM-"${id}" in MENU-"${menuType}" should be defined`);
-        }
-      }
-      this.binding.events[menuType] = expectedEvents;
-    }
-  }
-
-  /**
-   * Initialize
-   */
-  constructor() {
-    for (const menuType of Object.values(MenuType)) {
-      this.bindContextMenuWithEvents(menuType);    // init binding.[menu, events] as empty value
-    }
-  }
-
-  /**
-   * Extract all leaf items (which should have bound event) in the menu in order to do the following checking
-   * @param contextMenu - The target menu
-   * @return Expected event list with `id only` (undefined action)
-   */
-  private extractIdAndEvent(contextMenu: ContextMenu): ClickEvents {
-    interface MenuLeafItem { id: string; action: CallbackFunc; }
-
-    // update clickEvents with actions of all leaf nodes in context menu
-    const clickEvents: ClickEvents = {};
-    recursivelyExtract(contextMenu).forEach(leaf => { clickEvents[leaf.id] = leaf.action; });
-    return clickEvents;
-
-    function recursivelyExtract(items: Array<MenuItem>): Array<MenuLeafItem> {
-      const tmpEvents: Array<MenuLeafItem> = [];
-      for (const item of items) {
-        if (item.children === undefined || item.children.length === 0) {
-          tmpEvents.push({ id: item.id, action: undefined });
-        } else {
-          recursivelyExtract(item.children).forEach(event => { tmpEvents.push(event); });
-        }
-      }
-      return tmpEvents;
-    }
-  }
 }
-
 
 // ===== Type Definitions =====
 export interface MenuItem {
   id: string;
+  display?: string;    // for display (replace id)
+  title?: string;    // for tooltip when hovered
+  style?: { menu?: NgStyle['ngStyle']; title?: NgStyleInterface; };
   disabled?: boolean;
   children?: Array<MenuItem>;
-  title?: string;
+  action?: (eventInfo?: EventInfo) => void;
 }
 export type ContextMenu = Array<MenuItem>;
+interface MenuLeaf { id: MenuItem['id']; action: MenuItem['action']; }
 
 /** Event info provided by `joint.dia.Paper.on` callback function when user right click */
 interface EventInfo {
@@ -185,41 +208,25 @@ interface EventInfo {
   y: number;
   menuItem: MouseEvent;
 }
-/** User can decide whether to use the event info or not */
-export type CallbackFunc = (eventInfo?: EventInfo) => void;
-export interface ClickEvents {
-  [key: string]: CallbackFunc;
-}
 
-/** Context menu info provided by `*.component.ts` */
-export interface ContextMenuInfo {
-  paper: joint.dia.Paper;
-  service: NzContextMenuService;
-  component: NzDropdownMenuComponent;
-}
 /** Runtime info for context menu rendering, event triggering, and event providing */
 interface CurrentInfo {
-  menu: ContextMenu;
-  events: ClickEvents;
+  contextMenu: ContextMenu;
   eventInfo: EventInfo;
 }
-/** Binding info to record predefined menus and corresponding events */
-interface BindingInfo {
-  menu: {
-    cell?: ContextMenu;
-    link?: ContextMenu;
-    element?: ContextMenu;
-    blank?: ContextMenu;
-  };
-  events: {
-    cell?: ClickEvents;
-    link?: ClickEvents;
-    element?: ClickEvents;
-    blank?: ClickEvents;
+
+/** Registered info (including bound papers, predefined menus, required info of Angular */
+interface RegisterInfo {
+  paperSet: Set<joint.dia.Paper>;
+  contextMenu: RegisterContextMenu;
+  init?: {
+    nzContextMenuService: NzContextMenuService;
+    nzDropdownMenuComponent: NzDropdownMenuComponent;
   };
 }
+interface RegisterContextMenu extends Record<MenuType, ContextMenu> {}
 
-/** Four types of context menu events provide by */
+/** Four types of context menu events provide by JointJS */
 export enum MenuType {
   cell = 'cell',
   link = 'link',
